@@ -1,0 +1,11 @@
+# Roku package archives (contain compiled app, no need to commit)
+*.zip
+*.pkg
+
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Editor
+.vscode/
+*.swp

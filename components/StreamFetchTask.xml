@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+  StreamFetchTask: Background task that fetches a live HLS stream URL
+  from the HDOnTap backend embed API.
+
+  Fields:
+    streamId  (input)  - HDOnTap stream identifier string
+    result    (output) - AA with keys: streamUrl (string), error (string)
+-->
+<component name="StreamFetchTask" extends="Task">
+  <interface>
+    <field id="streamId" type="string" />
+    <field id="result"   type="assocarray" />
+  </interface>
+  <script type="text/brightscript" uri="pkg:/components/StreamFetchTask.brs" />
+</component>

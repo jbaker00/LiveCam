@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+  MainScene: Root scene for the Hotel Del Live Cam channel.
+
+  Layout (1920x1080 FHD):
+  ┌─────────────────────────────────────────────────────────┐
+  │  Video player (full screen)                             │
+  │                                                         │
+  │  ┌── Top overlay bar ───────────────────────────────┐  │
+  │  │  Hotel Del Live Cam   [South] [North]  [●LIVE]   │  │
+  │  └──────────────────────────────────────────────────┘  │
+  │                                                         │
+  │  Status label (loading / error) centered               │
+  └─────────────────────────────────────────────────────────┘
+
+  Remote control:
+    Left / Right  - switch between South and North camera
+    Select / OK   - same as switching (auto-plays on focus)
+    Back          - exit channel
+-->
+<component name="MainScene" extends="Scene">
+  <children>
+
+    <!-- Full-screen video player -->
+    <Video
+      id="videoPlayer"
+      width="1920"
+      height="1080"
+      translation="[0, 0]"
+      loop="true"
+    />
+
+    <!-- Dark gradient bar across the top for legibility -->
+    <Rectangle
+      id="topBar"
+      width="1920"
+      height="110"
+      translation="[0, 0]"
+      color="0x00000099"
+    />
+
+    <!-- Channel title -->
+    <Label
+      id="titleLabel"
+      text="Hotel Del Live Cam"
+      translation="[60, 28]"
+      font="font:MediumBoldSystemFont"
+      color="0xFFFFFFFF"
+    />
+
+    <!-- LIVE indicator -->
+    <Label
+      id="liveLabel"
+      text="● LIVE"
+      translation="[1760, 38]"
+      font="font:SmallSystemFont"
+      color="0xFF4444FF"
+    />
+
+    <!-- Camera selector buttons -->
+    <!-- South button background (highlighted when selected) -->
+    <Rectangle id="btnSouthBg"
+      width="260" height="54"
+      translation="[660, 28]"
+      color="0xFFFFFF33"
+    />
+    <Label id="btnSouth"
+      text="Beach Camera South"
+      translation="[672, 40]"
+      font="font:SmallSystemFont"
+      color="0xFFFFFFFF"
+    />
+
+    <!-- North button background -->
+    <Rectangle id="btnNorthBg"
+      width="250" height="54"
+      translation="[940, 28]"
+      color="0x00000000"
+    />
+    <Label id="btnNorth"
+      text="Beach Camera North"
+      translation="[952, 40]"
+      font="font:SmallSystemFont"
+      color="0xBBBBBBFF"
+    />
+
+    <!-- Status / loading message centered on screen -->
+    <Label
+      id="statusLabel"
+      text="Loading stream…"
+      translation="[0, 520]"
+      width="1920"
+      horizAlign="center"
+      font="font:MediumSystemFont"
+      color="0xFFFFFFCC"
+    />
+
+  </children>
+
+  <script type="text/brightscript" uri="pkg:/components/MainScene.brs" />
+</component>
