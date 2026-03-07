@@ -21,13 +21,10 @@
 <component name="MainScene" extends="Scene">
   <children>
 
-    <!-- Full-screen video player -->
+    <!-- Full-screen video player (dimensions set in BrightScript init) -->
     <Video
       id="videoPlayer"
-      width="1920"
-      height="1080"
       translation="[0, 0]"
-      loop="true"
     />
 
     <!-- Dark gradient bar across the top for legibility -->

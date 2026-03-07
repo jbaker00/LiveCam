@@ -35,11 +35,14 @@ sub init()
     m.btnSouth   = m.top.findNode("btnSouth")
     m.btnNorth   = m.top.findNode("btnNorth")
 
+    ' Size the video node to fill the full FHD canvas (1920x1080).
+    ' Setting this in BrightScript is more reliable than XML attributes
+    ' across different Roku firmware versions.
+    m.video.width  = 1920
+    m.video.height = 1080
+
     ' Wire up video error/state observer
     m.video.observeField("state", "onVideoStateChange")
-
-    ' Fetch both stream URLs concurrently
-    fetchStream(0)
     fetchStream(1)
 
     ' Give focus to this scene so we receive remote key events
@@ -92,9 +95,14 @@ sub handleFetchResult(idx as Integer, result as Object)
     if idx = 0 then m.southReady = true
     if idx = 1 then m.northReady = true
 
-    ' Auto-play South camera when it's ready (and nothing is already playing)
-    if idx = 0 and m.currentIndex = 0 and m.video.state <> "playing" then
-        playCamera(0)
+    ' Play if this is the active camera and video isn't already running.
+    ' After an error+retry the state will be "error" or "stopped", so this
+    ' also covers the recovery path.
+    if idx = m.currentIndex then
+        state = m.video.state
+        if state <> "playing" and state <> "buffering" then
+            playCamera(idx)
+        end if
     end if
 end sub
 
@@ -110,14 +118,19 @@ sub playCamera(idx as Integer)
     end if
 
     setStatus("")
-    m.video.visible = true
+
+    ' Always stop existing playback before loading new content.
+    ' Without this, switching cameras or retrying after an error can
+    ' leave the player in a bad state on some Roku firmware versions.
+    m.video.control = "stop"
 
     content = CreateObject("roSGNode", "ContentNode")
-    content.url         = cam.url
-    content.streamformat = "hls"
-    content.title       = cam.label
+    content.url          = cam.url
+    content.streamFormat = "hls"
+    content.title        = cam.label
 
     m.video.content = content
+    m.video.visible = true
     m.video.control = "play"
 
     updateButtonHighlight(idx)
