@@ -47,9 +47,6 @@ sub init()
     fetchStream(1)
 
     m.top.setFocus(true)
-
-    ' Performance beacon: UI is rendered and channel is ready for interaction
-    print "AppLaunchComplete"
 end sub
 
 ' =============================================================================
@@ -219,14 +216,14 @@ sub showExitDialog()
     m.hideTimer.control  = "stop"
     m.exitDialog.visible = true
     updateDialogHighlight()
-    print "AppDialogInitiate"
+    m.top.dialogState = "showing"   ' triggers AppDialogInitiate in main.brs
 end sub
 
 sub hideExitDialog()
     m.dialogVisible      = false
     m.exitDialog.visible = false
     m.video.control      = "play"
-    print "AppDialogComplete"
+    m.top.dialogState = "hidden"    ' triggers AppDialogComplete in main.brs
     ' Restart auto-hide countdown now that we're back to playing
     showHeader()
 end sub
@@ -244,7 +241,7 @@ sub updateDialogHighlight()
 end sub
 
 sub doExit()
-    print "AppDialogComplete"
+    m.top.dialogState = "hidden"    ' triggers AppDialogComplete in main.brs
     m.video.control    = "stop"
     m.top.exitChannel  = true   ' main.brs observes this and calls screen.close()
 end sub

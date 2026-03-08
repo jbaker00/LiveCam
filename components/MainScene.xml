@@ -20,6 +20,8 @@
     <field id="inputArgs"    type="assocarray" onChange="onLaunchArgs" />
     <!-- Observed by main.brs; setting true causes screen.close() on main thread -->
     <field id="exitChannel"  type="boolean"    value="false" />
+    <!-- Observed by main.brs to relay AppDialogInitiate/Complete beacons -->
+    <field id="dialogState"  type="string"     value="" />
   </interface>
 
   <children>

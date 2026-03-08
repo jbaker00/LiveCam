@@ -3,6 +3,10 @@ sub Main(args as Dynamic)
     m.port = CreateObject("roMessagePort")
     screen.setMessagePort(m.port)
 
+    ' Explicitly register for roInput events (required for certification 5.2)
+    m.input = CreateObject("roInput")
+    m.input.setMessagePort(m.port)
+
     ' Memory monitoring (required for certification)
     m.memMonitor = CreateObject("roAppMemoryMonitor")
     if m.memMonitor <> invalid then
@@ -23,9 +27,14 @@ sub Main(args as Dynamic)
         scene.launchArgs = args
     end if
 
+    ' AppLaunchComplete beacon: channel is visible and ready for user interaction.
+    ' Must be fired from main thread after screen.show() per Roku certification 3.2.
+    print "AppLaunchComplete"
+
     ' Observe the exitChannel flag so we can close the screen from the main thread
     ' when the user confirms exit in the dialog.
     scene.observeField("exitChannel", m.port)
+    scene.observeField("dialogState", m.port)
 
     while true
         msg = wait(0, m.port)
@@ -35,10 +44,16 @@ sub Main(args as Dynamic)
             if msg.isScreenClosed() then return
 
         else if msgType = "roSGNodeEvent" then
-            ' exitChannel was set to true by the exit dialog confirmation
             if msg.getField() = "exitChannel" and msg.getData() = true then
                 screen.close()
                 return
+            else if msg.getField() = "dialogState" then
+                ' Relay dialog beacons from scene to main thread
+                if msg.getData() = "showing" then
+                    print "AppDialogInitiate"
+                else if msg.getData() = "hidden" then
+                    print "AppDialogComplete"
+                end if
             end if
 
         else if msgType = "roInputEvent" then
