@@ -11,11 +11,11 @@ sub Main(args as Dynamic)
     m.memMonitor = CreateObject("roAppMemoryMonitor")
     if m.memMonitor <> invalid then
         m.memMonitor.enableMemoryWarningEvent(true)
-        m.memMonitor.enableLowGeneralMemoryEvent(true)
         m.memMonitor.setMessagePort(m.port)
         print "[LiveCam] Memory limit: " m.memMonitor.getChannelMemoryLimit()
         print "[LiveCam] Memory available: " m.memMonitor.getChannelAvailableMemory()
         print "[LiveCam] Memory used: " m.memMonitor.getMemoryLimitPercent() "%"
+        print "[LiveCam] enableLowGeneralMemoryEvent: not available on this firmware"
     end if
 
     scene = screen.CreateScene("MainScene")
