@@ -2,95 +2,60 @@
 <!--
   MainScene: Root scene for the Hotel Del Live Cam channel.
 
-  Layout (1920x1080 FHD):
-  ┌─────────────────────────────────────────────────────────┐
-  │  Video player (full screen)                             │
-  │                                                         │
-  │  ┌── Top overlay bar ───────────────────────────────┐  │
-  │  │  Hotel Del Live Cam   [South] [North]  [●LIVE]   │  │
-  │  └──────────────────────────────────────────────────┘  │
-  │                                                         │
-  │  Status label (loading / error) centered               │
-  └─────────────────────────────────────────────────────────┘
-
   Remote control:
-    Left / Right  - switch between South and North camera
-    Select / OK   - same as switching (auto-plays on focus)
-    Back          - exit channel
+    Left / Right - switch cameras
+    Back         - show exit confirmation dialog
+    Back on dialog - cancel / dismiss
+
+  Deep link content IDs:
+    "south" or "0" -> Beach Camera South
+    "north" or "1" -> Beach Camera North
 -->
 <component name="MainScene" extends="Scene">
+
+  <interface>
+    <!-- Set by main.brs on launch with the args AA from Main(args) -->
+    <field id="launchArgs"   type="assocarray" onChange="onLaunchArgs" />
+    <!-- Set by main.brs when a mid-session roInputEvent deep link arrives -->
+    <field id="inputArgs"    type="assocarray" onChange="onLaunchArgs" />
+    <!-- main.brs observes this; when true it calls screen.close() to exit -->
+    <field id="exitChannel"  type="boolean"    value="false" />
+  </interface>
+
   <children>
 
     <!-- Full-screen video player (dimensions set in BrightScript init) -->
-    <Video
-      id="videoPlayer"
-      translation="[0, 0]"
-    />
+    <Video id="videoPlayer" translation="[0, 0]" />
 
-    <!-- Dark gradient bar across the top for legibility -->
-    <Rectangle
-      id="topBar"
-      width="1920"
-      height="110"
-      translation="[0, 0]"
-      color="0x00000099"
-    />
+    <!--
+      Header overlay - auto-hides 5 seconds after playback starts,
+      reappears on any key press.
+    -->
+    <Group id="headerGroup">
+      <Rectangle id="topBar" width="1920" height="110"
+                 translation="[0, 0]" color="0x00000099" />
+      <Label id="titleLabel" text="Hotel Del Live Cam"
+             translation="[60, 28]" font="font:MediumBoldSystemFont"
+             color="0xFFFFFFFF" />
+      <Label id="liveLabel" text="LIVE"
+             translation="[1800, 38]" font="font:SmallSystemFont"
+             color="0xFF5555FF" />
+      <Rectangle id="btnSouthBg" width="260" height="54"
+                 translation="[660, 28]" color="0xFFFFFF33" />
+      <Label id="btnSouth" text="Beach Camera South"
+             translation="[672, 40]" font="font:SmallSystemFont"
+             color="0xFFFFFFFF" />
+      <Rectangle id="btnNorthBg" width="250" height="54"
+                 translation="[940, 28]" color="0x00000000" />
+      <Label id="btnNorth" text="Beach Camera North"
+             translation="[952, 40]" font="font:SmallSystemFont"
+             color="0xBBBBBBFF" />
+    </Group>
 
-    <!-- Channel title -->
-    <Label
-      id="titleLabel"
-      text="Hotel Del Live Cam"
-      translation="[60, 28]"
-      font="font:MediumBoldSystemFont"
-      color="0xFFFFFFFF"
-    />
-
-    <!-- LIVE indicator -->
-    <Label
-      id="liveLabel"
-      text="● LIVE"
-      translation="[1760, 38]"
-      font="font:SmallSystemFont"
-      color="0xFF4444FF"
-    />
-
-    <!-- Camera selector buttons -->
-    <!-- South button background (highlighted when selected) -->
-    <Rectangle id="btnSouthBg"
-      width="260" height="54"
-      translation="[660, 28]"
-      color="0xFFFFFF33"
-    />
-    <Label id="btnSouth"
-      text="Beach Camera South"
-      translation="[672, 40]"
-      font="font:SmallSystemFont"
-      color="0xFFFFFFFF"
-    />
-
-    <!-- North button background -->
-    <Rectangle id="btnNorthBg"
-      width="250" height="54"
-      translation="[940, 28]"
-      color="0x00000000"
-    />
-    <Label id="btnNorth"
-      text="Beach Camera North"
-      translation="[952, 40]"
-      font="font:SmallSystemFont"
-      color="0xBBBBBBFF"
-    />
-
-    <!-- Status / loading message centered on screen -->
-    <Label
-      id="statusLabel"
-      text="Loading stream…"
-      translation="[0, 520]"
-      width="1920"
-      horizAlign="center"
-      font="font:MediumSystemFont"
-      color="0xFFFFFFCC"
-    />
+    <!-- Status / loading / error message -->
+    <Label id="statusLabel" text="Loading stream..."
+           translation="[0, 520]" width="1920" horizAlign="center"
+           font="font:MediumSystemFont" color="0xFFFFFFCC" />
 
   </children>
 
