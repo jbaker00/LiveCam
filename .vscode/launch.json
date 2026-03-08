@@ -1,0 +1,73 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug: Living Room (192.168.6.36)",
+      "type": "brightscript",
+      "request": "launch",
+      "host": "192.168.6.36",
+      "password": "jamie",
+      "rootDir": "${workspaceFolder}",
+      "files": [
+        "manifest",
+        "source/**/*",
+        "components/**/*",
+        "images/mm_icon_focus_hd.png",
+        "images/splash_screen.jpg"
+      ],
+      "stopOnEntry": false,
+      "enableDebugProtocol": true
+    },
+    {
+      "name": "Debug: Guest Room (192.168.4.39)",
+      "type": "brightscript",
+      "request": "launch",
+      "host": "192.168.4.39",
+      "password": "jamie",
+      "rootDir": "${workspaceFolder}",
+      "files": [
+        "manifest",
+        "source/**/*",
+        "components/**/*",
+        "images/mm_icon_focus_hd.png",
+        "images/splash_screen.jpg"
+      ],
+      "stopOnEntry": false,
+      "enableDebugProtocol": true
+    },
+    {
+      "name": "Debug: Master Bedroom (192.168.4.35)",
+      "type": "brightscript",
+      "request": "launch",
+      "host": "192.168.4.35",
+      "password": "jamie",
+      "rootDir": "${workspaceFolder}",
+      "files": [
+        "manifest",
+        "source/**/*",
+        "components/**/*",
+        "images/mm_icon_focus_hd.png",
+        "images/splash_screen.jpg"
+      ],
+      "stopOnEntry": false,
+      "enableDebugProtocol": true
+    },
+    {
+      "name": "Debug: Kids Room (192.168.4.34)",
+      "type": "brightscript",
+      "request": "launch",
+      "host": "192.168.4.34",
+      "password": "jamie",
+      "rootDir": "${workspaceFolder}",
+      "files": [
+        "manifest",
+        "source/**/*",
+        "components/**/*",
+        "images/mm_icon_focus_hd.png",
+        "images/splash_screen.jpg"
+      ],
+      "stopOnEntry": false,
+      "enableDebugProtocol": true
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "name": "livecam",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "deploy:living-room": "npx roku-deploy --config rokudeploy.json --host 192.168.6.36",
+    "deploy:guest": "npx roku-deploy --config rokudeploy.json --host 192.168.4.39",
+    "deploy:master": "npx roku-deploy --config rokudeploy.json --host 192.168.4.35",
+    "deploy:kids": "npx roku-deploy --config rokudeploy.json --host 192.168.4.34",
+    "deploy:all": "npm run deploy:living-room && npm run deploy:guest && npm run deploy:master && npm run deploy:kids",
+    "package": "npx roku-deploy --config rokudeploy.json --host 192.168.6.36 --package",
+    "sca": "cd sdkdocs/sca-cmd/bin && ./sca-cmd /tmp/channel.zip --severity info",
+    "lint": "npx bslint",
+    "test": "npx rooibos-cli"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jbaker00/LiveCam.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/jbaker00/LiveCam/issues"
+  },
+  "homepage": "https://github.com/jbaker00/LiveCam#readme",
+  "devDependencies": {
+    "@rokucommunity/bslint": "^0.8.38",
+    "brighterscript": "^0.70.3",
+    "roku-deploy": "^3.16.1",
+    "ropm": "^0.11.4"
+  }
+}

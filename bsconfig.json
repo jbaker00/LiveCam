@@ -1,0 +1,14 @@
+{
+  "rootDir": ".",
+  "files": [
+    "manifest",
+    "source/**/*",
+    "components/**/*"
+  ],
+  "plugins": [
+    "@rokucommunity/bslint"
+  ],
+  "diagnosticFilters": [
+    { "codes": [1001] }
+  ]
+}

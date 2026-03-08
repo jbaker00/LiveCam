@@ -7,5 +7,11 @@
 **/.DS_Store
 
 # Editor
-.vscode/
 *.swp
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Roku signing credentials — do not commit
+rokudeploy.json

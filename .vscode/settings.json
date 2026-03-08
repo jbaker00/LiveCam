@@ -1,0 +1,13 @@
+{
+  "brightscript.deviceDiscovery.enabled": true,
+  "brightscript.focusThirdPartyDebugger": true,
+  "[brightscript]": {
+    "editor.tabSize": 4,
+    "editor.insertSpaces": true,
+    "editor.formatOnSave": true
+  },
+  "[brs]": {
+    "editor.tabSize": 4,
+    "editor.insertSpaces": true
+  }
+}
