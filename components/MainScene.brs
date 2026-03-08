@@ -62,12 +62,15 @@ sub onLaunchArgs()
     end if
     if args = invalid or args.contentId = invalid then return
 
+    ' Read both contentId and mediaType as required by certification 5.2
+    mediaType = ""
+    if args.mediaType <> invalid then mediaType = lcase(args.mediaType)
     cid = lcase(args.contentId)
     if cid = "north" or cid = "beach-camera-north" or cid = "1" then
-        print "[LiveCam] Deep link -> North"
+        print "[LiveCam] Deep link -> North (mediaType=" + mediaType + ")"
         switchCamera(1)
     else
-        print "[LiveCam] Deep link -> South (contentId=" + cid + ")"
+        print "[LiveCam] Deep link -> South (contentId=" + cid + " mediaType=" + mediaType + ")"
         switchCamera(0)
     end if
 end sub

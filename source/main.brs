@@ -15,7 +15,12 @@ sub Main(args as Dynamic)
         print "[LiveCam] Memory limit: " m.memMonitor.getChannelMemoryLimit()
         print "[LiveCam] Memory available: " m.memMonitor.getChannelAvailableMemory()
         print "[LiveCam] Memory used: " m.memMonitor.getMemoryLimitPercent() "%"
-        print "[LiveCam] enableLowGeneralMemoryEvent: not available on this firmware"
+    end if
+
+    ' Low general memory event is on roDeviceInfo (required for certification monitoring)
+    m.devInfo = CreateObject("roDeviceInfo")
+    if m.devInfo <> invalid then
+        m.devInfo.enableLowGeneralMemoryEvent(true)
     end if
 
     scene = screen.CreateScene("MainScene")
@@ -27,9 +32,8 @@ sub Main(args as Dynamic)
         scene.launchArgs = args
     end if
 
-    ' AppLaunchComplete beacon: channel is visible and ready for user interaction.
-    ' Must be fired from main thread after screen.show() per Roku certification 3.2.
-    print "AppLaunchComplete"
+    ' AppLaunchComplete beacon: RSG-native signal after screen is visible (cert 3.2)
+    scene.signalBeacon("AppLaunchComplete")
 
     ' Observe the exitChannel flag so we can close the screen from the main thread
     ' when the user confirms exit in the dialog.
