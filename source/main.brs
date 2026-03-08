@@ -3,6 +3,17 @@ sub Main(args as Dynamic)
     m.port = CreateObject("roMessagePort")
     screen.setMessagePort(m.port)
 
+    ' Memory monitoring (required for certification)
+    m.memMonitor = CreateObject("roAppMemoryMonitor")
+    if m.memMonitor <> invalid then
+        m.memMonitor.enableMemoryWarningEvent(true)
+        m.memMonitor.enableLowGeneralMemoryEvent(true)
+        m.memMonitor.setMessagePort(m.port)
+        print "[LiveCam] Memory limit: " m.memMonitor.getChannelMemoryLimit()
+        print "[LiveCam] Memory available: " m.memMonitor.getChannelAvailableMemory()
+        print "[LiveCam] Memory used: " m.memMonitor.getMemoryLimitPercent() "%"
+    end if
+
     scene = screen.CreateScene("MainScene")
     screen.show()
 
@@ -34,6 +45,11 @@ sub Main(args as Dynamic)
             ' Mid-session deep link: user launches via voice or Roku search
             ' while the channel is already running
             scene.inputArgs = msg.getInfo()
+
+        else if msgType = "roAppMemoryMonitorEvent" then
+            if msg.isMemoryWarning() then
+                print "[LiveCam] Memory warning - available: " m.memMonitor.getChannelAvailableMemory()
+            end if
         end if
     end while
 end sub
