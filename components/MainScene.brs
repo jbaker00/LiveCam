@@ -1,22 +1,23 @@
-' MainScene.brs
-' Controller for the Hotel Del Live Cam main scene.
+' MainScene.brs — Hotel Del Live Cam controller
 '
 ' Cameras:
-'   index 0 = Beach Camera South  (hdc_hoteldelsouith-4K_ptz-CUST)
-'   index 1 = Beach Camera North  (hoteldelnorth_hdc-CUST)
+'   0 = Beach Camera South  (hdc_hoteldelsouith-4K_ptz-CUST)
+'   1 = Beach Camera North  (hoteldelnorth_hdc-CUST)
 '
-' Deep link content IDs accepted:
-'   "south", "beach-camera-south", "0"  -> camera 0
-'   "north", "beach-camera-north", "1"  -> camera 1
+' Deep link contentId values:
+'   "south" / "beach-camera-south" / "0"  -> index 0
+'   "north" / "beach-camera-north" / "1"  -> index 1
 
 sub init()
     m.cameras = [
         { id: "hdc_hoteldelsouith-4K_ptz-CUST", label: "Beach Camera South", url: "" },
         { id: "hoteldelnorth_hdc-CUST",          label: "Beach Camera North", url: "" }
     ]
-    m.currentIndex = 0
+    m.currentIndex  = 0
+    m.dialogVisible = false   ' tracks exit dialog state; avoids any Dialog-node focus issues
+    m.dialogFocus   = 0       ' 0 = Keep Watching, 1 = Exit
 
-    ' ── Node references ──────────────────────────────────────────────────────
+    ' ── Node refs ────────────────────────────────────────────────────────────
     m.video       = m.top.findNode("videoPlayer")
     m.statusLbl   = m.top.findNode("statusLabel")
     m.headerGroup = m.top.findNode("headerGroup")
@@ -24,20 +25,16 @@ sub init()
     m.btnNorthBg  = m.top.findNode("btnNorthBg")
     m.btnSouth    = m.top.findNode("btnSouth")
     m.btnNorth    = m.top.findNode("btnNorth")
+    m.exitDialog  = m.top.findNode("exitDialog")
+    m.btnKeepBg   = m.top.findNode("btnKeepBg")
+    m.btnExitBg   = m.top.findNode("btnExitBg")
+    m.btnKeep     = m.top.findNode("btnKeep")
+    m.btnExit     = m.top.findNode("btnExit")
 
-    ' ── Video setup ──────────────────────────────────────────────────────────
+    ' ── Video ────────────────────────────────────────────────────────────────
     m.video.width  = 1920
     m.video.height = 1080
     m.video.observeField("state", "onVideoStateChange")
-
-    ' ── Exit dialog ──────────────────────────────────────────────────────────
-    ' Created once and reused; shown by setting m.top.dialog = m.exitDialog
-    m.exitDialog = CreateObject("roSGNode", "Dialog")
-    m.exitDialog.title   = "Exit Hotel Del Live Cam"
-    m.exitDialog.message = "Are you sure you want to exit?"
-    m.exitDialog.buttons = ["Exit", "Cancel"]
-    m.exitDialog.observeField("buttonSelected", "onExitDialogButton")
-    m.exitDialog.observeField("wasDismissed",   "onExitDialogDismissed")
 
     ' ── Header auto-hide timer ────────────────────────────────────────────────
     m.hideTimer          = CreateObject("roSGNode", "Timer")
@@ -45,7 +42,7 @@ sub init()
     m.hideTimer.repeat   = false
     m.hideTimer.observeField("fire", "onHideTimerFired")
 
-    ' ── Fetch both stream URLs concurrently at launch ─────────────────────────
+    ' ── Fetch both stream URLs at launch ─────────────────────────────────────
     fetchStream(0)
     fetchStream(1)
 
@@ -56,40 +53,32 @@ end sub
 ' Deep linking
 ' =============================================================================
 
-' Called when launchArgs or inputArgs changes (both fields share this handler).
-' Roku passes content info as an AA with at least a "contentId" key.
-' We map the contentId to a camera index and switch to it.
+' Handles both launchArgs (startup) and inputArgs (mid-session roInputEvent).
+' Both fields share this one handler via their onChange attribute.
 sub onLaunchArgs()
-    ' Prefer inputArgs (mid-session) over launchArgs, but both use this handler.
-    ' Whichever field last changed will have the fresh value.
     args = m.top.inputArgs
     if args = invalid or args.contentId = invalid then
         args = m.top.launchArgs
     end if
-    if args = invalid then return
+    if args = invalid or args.contentId = invalid then return
 
-    contentId = args.contentId
-    if contentId = invalid then return
-    contentId = lcase(contentId)
-
-    if contentId = "north" or contentId = "beach-camera-north" or contentId = "1" then
-        print "[LiveCam] Deep link -> North camera"
+    cid = lcase(args.contentId)
+    if cid = "north" or cid = "beach-camera-north" or cid = "1" then
+        print "[LiveCam] Deep link -> North"
         switchCamera(1)
     else
-        ' Default / "south" / "beach-camera-south" / "0"
-        print "[LiveCam] Deep link -> South camera (contentId=" + contentId + ")"
+        print "[LiveCam] Deep link -> South (contentId=" + cid + ")"
         switchCamera(0)
     end if
 end sub
 
 ' =============================================================================
-' Stream URL fetching
+' Stream fetching
 ' =============================================================================
 
 sub fetchStream(idx as Integer)
     task          = CreateObject("roSGNode", "StreamFetchTask")
     task.streamId = m.cameras[idx].id
-
     if idx = 0 then
         task.observeField("result", "onSouthFetched")
         m.southTask = task
@@ -97,7 +86,6 @@ sub fetchStream(idx as Integer)
         task.observeField("result", "onNorthFetched")
         m.northTask = task
     end if
-
     task.control = "RUN"
 end sub
 
@@ -113,19 +101,17 @@ end sub
 
 sub handleFetchResult(idx as Integer, result as Object)
     if result = invalid then return
-
     if result.error <> invalid then
-        print "[LiveCam] Fetch error camera " idx ": " result.error
+        print "[LiveCam] Fetch error cam " idx ": " result.error
         if idx = m.currentIndex then setStatus("Error: " + result.error)
         return
     end if
-
     m.cameras[idx].url = result.streamUrl
-    print "[LiveCam] URL ready camera " idx
-
+    print "[LiveCam] URL ready cam " idx
+    ' Auto-play on whichever camera is currently selected
     if idx = m.currentIndex then
-        state = m.video.state
-        if state <> "playing" and state <> "buffering" then
+        st = m.video.state
+        if st <> "playing" and st <> "buffering" then
             playCamera(idx)
         end if
     end if
@@ -154,10 +140,13 @@ sub playCamera(idx as Integer)
     m.video.visible = true
     m.video.control = "play"
 
-    updateButtonHighlight(idx)
+    updateCameraButtons(idx)
+
+    ' Keep focus on the scene so onKeyEvent keeps receiving keys
+    m.top.setFocus(true)
 end sub
 
-sub updateButtonHighlight(idx as Integer)
+sub updateCameraButtons(idx as Integer)
     if idx = 0 then
         m.btnSouthBg.color = "0xFFFFFF33" : m.btnNorthBg.color = "0x00000000"
         m.btnSouth.color   = "0xFFFFFFFF" : m.btnNorth.color   = "0xBBBBBBFF"
@@ -182,13 +171,14 @@ sub showHeader()
 end sub
 
 sub onHideTimerFired()
-    if m.video.state = "playing" then
+    ' Only hide when actively playing and no dialog is up
+    if m.video.state = "playing" and not m.dialogVisible then
         m.headerGroup.visible = false
     end if
 end sub
 
 ' =============================================================================
-' Video state
+' Video state changes
 ' =============================================================================
 
 sub onVideoStateChange()
@@ -196,10 +186,10 @@ sub onVideoStateChange()
     if state = "error" then
         setStatus("Stream error - retrying...")
         showHeader()
-        m.retryTimer = CreateObject("roSGNode", "Timer")
+        m.retryTimer          = CreateObject("roSGNode", "Timer")
         m.retryTimer.duration = 3
         m.retryTimer.observeField("fire", "onRetry")
-        m.retryTimer.control = "start"
+        m.retryTimer.control  = "start"
     else if state = "playing" then
         setStatus("")
         showHeader()
@@ -209,48 +199,58 @@ sub onVideoStateChange()
 end sub
 
 sub onRetry()
-    ' Discard the old URL so we re-fetch a fresh signed token
+    ' Discard stale URL so we get a fresh signed token
     m.cameras[m.currentIndex].url = ""
     fetchStream(m.currentIndex)
 end sub
 
 ' =============================================================================
-' Exit dialog
+' Exit dialog — pure BrightScript overlay, no Dialog node, no focus stealing
 ' =============================================================================
 
 sub showExitDialog()
-    m.video.control  = "pause"
-    m.top.dialog     = m.exitDialog
+    m.dialogVisible      = true
+    m.dialogFocus        = 0   ' default: Keep Watching
+    m.video.control      = "pause"
+    m.headerGroup.visible = true   ' keep header visible while dialog is open
+    m.hideTimer.control  = "stop"
     m.exitDialog.visible = true
+    updateDialogHighlight()
 end sub
 
-' Called when the user selects a button in the exit dialog.
-'   index 0 = "Exit"   -> signal main.brs to close the screen
-'   index 1 = "Cancel" -> resume playback
-sub onExitDialogButton()
-    idx = m.exitDialog.buttonSelected
-    dismissExitDialog()
+sub hideExitDialog()
+    m.dialogVisible      = false
+    m.exitDialog.visible = false
+    m.video.control      = "play"
+    ' Restart auto-hide countdown now that we're back to playing
+    showHeader()
+end sub
 
-    if idx = 0 then
-        ' Tell main.brs to close the screen (can only call screen.close()
-        ' from the main thread, not from a SceneGraph component)
-        m.video.control     = "stop"
-        m.top.exitChannel   = true
+sub updateDialogHighlight()
+    if m.dialogFocus = 0 then
+        ' "Keep Watching" highlighted
+        m.btnKeepBg.color = "0xFFFFFF33" : m.btnExitBg.color = "0x00000000"
+        m.btnKeep.color   = "0xFFFFFFFF" : m.btnExit.color   = "0x888888FF"
     else
-        ' Cancel - resume wherever we left off
-        m.video.control = "play"
+        ' "Exit" highlighted
+        m.btnKeepBg.color = "0x00000000" : m.btnExitBg.color = "0xCC2222CC"
+        m.btnKeep.color   = "0x888888FF" : m.btnExit.color   = "0xFFFFFFFF"
     end if
 end sub
 
-' Called if the user presses Back while the dialog is shown (dismisses it)
-sub onExitDialogDismissed()
-    dismissExitDialog()
-    m.video.control = "play"
+sub doExit()
+    m.video.control    = "stop"
+    m.top.exitChannel  = true   ' main.brs observes this and calls screen.close()
 end sub
 
-sub dismissExitDialog()
-    m.exitDialog.visible = false
-    m.top.dialog         = invalid
+' =============================================================================
+' Camera switching
+' =============================================================================
+
+sub switchCamera(idx as Integer)
+    m.currentIndex = idx
+    playCamera(idx)
+    if m.cameras[idx].url = "" then fetchStream(idx)
 end sub
 
 ' =============================================================================
@@ -260,10 +260,31 @@ end sub
 function onKeyEvent(key as String, press as Boolean) as Boolean
     if not press then return false
 
-    ' If the exit dialog is visible, Back dismisses it (handled by
-    ' wasDismissed observer above) — don't also handle it here
-    if m.exitDialog.visible then return false
+    ' ── Dialog is open: route all keys into dialog navigation ────────────────
+    if m.dialogVisible then
+        if key = "left" or key = "up" then
+            m.dialogFocus = 0
+            updateDialogHighlight()
+            return true
+        else if key = "right" or key = "down" then
+            m.dialogFocus = 1
+            updateDialogHighlight()
+            return true
+        else if key = "OK" or key = "select" then
+            if m.dialogFocus = 1 then
+                doExit()
+            else
+                hideExitDialog()
+            end if
+            return true
+        else if key = "back" then
+            hideExitDialog()
+            return true
+        end if
+        return true   ' swallow all other keys while dialog is open
+    end if
 
+    ' ── Normal playback keys ──────────────────────────────────────────────────
     showHeader()
 
     if key = "left" or key = "up" then
@@ -273,19 +294,14 @@ function onKeyEvent(key as String, press as Boolean) as Boolean
         switchCamera(1)
         return true
     else if key = "OK" or key = "play" then
-        switchCamera(m.currentIndex)
+        ' Re-fetch + replay the current camera (useful if stream stalled)
+        m.cameras[m.currentIndex].url = ""
+        fetchStream(m.currentIndex)
         return true
     else if key = "back" then
         showExitDialog()
-        return true   ' consume Back so Roku doesn't immediately exit
+        return true
     end if
 
     return false
 end function
-
-sub switchCamera(idx as Integer)
-    if idx = m.currentIndex and m.video.state = "playing" then return
-    m.currentIndex = idx
-    playCamera(idx)
-    if m.cameras[idx].url = "" then fetchStream(idx)
-end sub

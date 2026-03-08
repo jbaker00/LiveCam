@@ -3,9 +3,9 @@
   MainScene: Root scene for the Hotel Del Live Cam channel.
 
   Remote control:
-    Left / Right - switch cameras
-    Back         - show exit confirmation dialog
-    Back on dialog - cancel / dismiss
+    Left / Right - switch cameras (or navigate dialog buttons)
+    OK           - re-select current camera (or confirm dialog)
+    Back         - show exit dialog (or dismiss it)
 
   Deep link content IDs:
     "south" or "0" -> Beach Camera South
@@ -14,23 +14,20 @@
 <component name="MainScene" extends="Scene">
 
   <interface>
-    <!-- Set by main.brs on launch with the args AA from Main(args) -->
+    <!-- Passed in by main.brs on first launch -->
     <field id="launchArgs"   type="assocarray" onChange="onLaunchArgs" />
-    <!-- Set by main.brs when a mid-session roInputEvent deep link arrives -->
+    <!-- Passed in by main.brs when a mid-session roInputEvent arrives -->
     <field id="inputArgs"    type="assocarray" onChange="onLaunchArgs" />
-    <!-- main.brs observes this; when true it calls screen.close() to exit -->
+    <!-- Observed by main.brs; setting true causes screen.close() on main thread -->
     <field id="exitChannel"  type="boolean"    value="false" />
   </interface>
 
   <children>
 
-    <!-- Full-screen video player (dimensions set in BrightScript init) -->
+    <!-- Full-screen video player (w/h set in BrightScript) -->
     <Video id="videoPlayer" translation="[0, 0]" />
 
-    <!--
-      Header overlay - auto-hides 5 seconds after playback starts,
-      reappears on any key press.
-    -->
+    <!-- Header overlay — auto-hides 5s after playback starts -->
     <Group id="headerGroup">
       <Rectangle id="topBar" width="1920" height="110"
                  translation="[0, 0]" color="0x00000099" />
@@ -56,6 +53,43 @@
     <Label id="statusLabel" text="Loading stream..."
            translation="[0, 520]" width="1920" horizAlign="center"
            font="font:MediumSystemFont" color="0xFFFFFFCC" />
+
+    <!--
+      Exit confirmation dialog — a custom overlay so it does NOT steal focus.
+      Focus always stays on the Scene; onKeyEvent routes keys here when visible.
+    -->
+    <Group id="exitDialog" visible="false">
+      <!-- Full-screen dim overlay -->
+      <Rectangle width="1920" height="1080"
+                 translation="[0, 0]" color="0x00000099" />
+      <!-- Dialog card -->
+      <Rectangle width="720" height="280"
+                 translation="[600, 400]" color="0x111111EE" />
+      <!-- Question -->
+      <Label text="Exit Hotel Del Live Cam?"
+             translation="[600, 430]" width="720"
+             horizAlign="center" font="font:MediumBoldSystemFont"
+             color="0xFFFFFFFF" />
+      <!-- Keep Watching button -->
+      <Rectangle id="btnKeepBg" width="280" height="64"
+                 translation="[630, 520]" color="0xFFFFFF33" />
+      <Label id="btnKeep" text="Keep Watching"
+             translation="[630, 535]" width="280"
+             horizAlign="center" font="font:SmallSystemFont"
+             color="0xFFFFFFFF" />
+      <!-- Exit button -->
+      <Rectangle id="btnExitBg" width="180" height="64"
+                 translation="[940, 520]" color="0x00000000" />
+      <Label id="btnExit" text="Exit"
+             translation="[940, 535]" width="180"
+             horizAlign="center" font="font:SmallSystemFont"
+             color="0xBBBBBBFF" />
+      <!-- Hint -->
+      <Label text="Left / Right to choose   OK to confirm   Back to cancel"
+             translation="[600, 620]" width="720"
+             horizAlign="center" font="font:SmallSystemFont"
+             color="0x888888FF" />
+    </Group>
 
   </children>
 
