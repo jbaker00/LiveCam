@@ -1,17 +1,47 @@
-# Roku package archives (contain compiled app, no need to commit)
+# Roku channel archives (compiled — don't commit)
 *.zip
 *.pkg
 
 # macOS
 .DS_Store
 **/.DS_Store
+.AppleDouble
+.LSOverride
 
 # Editor
 *.swp
+*.swo
+*~
+.idea/
 
-# Node
+# Node / npm
 node_modules/
 npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# Roku signing credentials — do not commit
+# Roku signing credentials — NEVER commit
 rokudeploy.json
+
+# SDK reference docs (large PDFs — read locally, not needed in repo)
+sdkdocs/**/*.pdf
+sdkdocs/rokudev_*.pdf
+*.pdf
+
+# Roku build outputs
+out/
+dist/
+.roku-deploy-staging/
+
+# BrightScript / BrighterScript build cache
+.brightscript/
+*.bsconfig.tmp.json
+
+# Test coverage / reports
+coverage/
+.nyc_output/
+
+# Temp / logs
+*.log
+tmp/
+temp/
