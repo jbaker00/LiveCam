@@ -13,7 +13,7 @@
     "deploy:kids": "npx roku-deploy --config rokudeploy.json --host 192.168.4.34",
     "deploy:all": "npm run deploy:living-room && npm run deploy:guest && npm run deploy:master && npm run deploy:kids",
     "package": "npx roku-deploy --config rokudeploy.json --host 192.168.6.36 --package",
-    "sca": "cd sdkdocs/sca-cmd/bin && ./sca-cmd /tmp/channel.zip --severity info",
+    "sca": "cd sdkdocs/sca-cmd/bin && ./sca-cmd ../../../out/HotelDelLiveCam.zip --severity info",
     "lint": "npx bslint",
     "test": "npx rooibos-cli"
   },

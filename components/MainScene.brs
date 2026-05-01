@@ -138,6 +138,7 @@ sub playCamera(idx as Integer)
     content.url          = cam.url
     content.streamFormat = "hls"
     content.title        = cam.label
+    content.Live         = true
 
     m.video.content = content
     m.video.visible = true
